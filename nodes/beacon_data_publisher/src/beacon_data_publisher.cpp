@@ -51,7 +51,7 @@ int main()
 			point_to_send.y = pos.y;
 			point_to_send.z = pos.z;
 
-			pub.publish(pos);
+			pub.publish(point_to_send);
 
 			ros::spinOnce();
 			loop_rate.sleep();
