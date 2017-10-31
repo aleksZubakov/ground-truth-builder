@@ -54,7 +54,7 @@ docs/_build/
 
 .ipynb_checpoints/
 
-# Jupyter notebook 
+# Jupyter notebook
 MANIFEST
 build
 dist
@@ -83,7 +83,7 @@ __pycache__
 \#*#
 .#*
 .coverage
-src
+
 
 *.swp
 *.map
