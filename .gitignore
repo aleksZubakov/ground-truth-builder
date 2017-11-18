@@ -93,3 +93,8 @@ config.rst
 
 /.project
 /.pydevproject
+
+
+build/
+devel/
+cmake-build-debug/
