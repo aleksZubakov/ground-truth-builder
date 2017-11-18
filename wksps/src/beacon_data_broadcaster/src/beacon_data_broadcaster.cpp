@@ -1,8 +1,10 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
+#include <tf/transform_broadcaster.h>
 
 #include "hedgehog_proxy.h"
 
+// DEBUG
 // geometry_msgs::Point simulate_beacons_data() {
 // 	static geometry_msgs::Point::_x_type x;
 // 	x += 0.5;
@@ -29,20 +31,19 @@ int main(int argc, char** argv)
 
 	signal (SIGINT, CtrlHandler);
 	signal (SIGQUIT, CtrlHandler);
+    
 
-	ros::NodeHandle n;
-	ros::Publisher pub = n.advertise<geometry_msgs::Point>("/beacon_data", 100);
+    tf::TransformBroadcaster br;
 
-	ros::Rate loop_rate(0.1);
+    tf::Transform transform;
+    tf::Quaternion q;
 
+    ros::Rate loop_rate(0.1);
 	while ((!hedge_proxy.terminationRequired()) && ros::ok())
     // DEBUG
     // while (ros::ok())
 	{
 		PositionValue pos = hedge_proxy.get_data();
-		
-        // DEBUG
-        // PositionValue pos = simulate_beacons_data();
 
         // DEBUG
         // geometry_msgs::Point pos = simulate_beacons_data();
@@ -51,17 +52,13 @@ int main(int argc, char** argv)
 		{
             // DEBUG
 			std::cout << "X: " << pos.x << " Y: " << pos.y << " Z: " << pos.z << std::endl;
-			
-            // DEBUG
-            // ROS_INFO("X: %f  Y: %f  Z: %f \n", pos.x, pos.y, pos.z);
+            
+            transform.setOrigin(tf::Vector3(pos.x, pos.y, pos.z));
 
-            geometry_msgs::Point point_to_send;
+            q.setRPY(0, 0, 0);
+            transform.setRotation(q);
 
-			point_to_send.x = pos.x;
-			point_to_send.y = pos.y;
-			point_to_send.z = pos.z;
-
-			pub.publish(point_to_send);
+            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "beacon", "beacon_listener"));
 
 			ros::spinOnce();
 			loop_rate.sleep();
