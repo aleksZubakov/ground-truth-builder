@@ -33,7 +33,7 @@ tf::Transform get_beacon_transform(HedgehogProxy& hedge_proxy) {
 	
 	while((!terminateProgram) && (!hedge_proxy.terminationRequired())) {
 
-		PositionValue pos = hedge_proxy.get_data();
+		PositionValue pos = hedge_proxy.get_position();
 
 		// DEBUG
 		// geometry_msgs::Point pos = simulate_beacons_data();

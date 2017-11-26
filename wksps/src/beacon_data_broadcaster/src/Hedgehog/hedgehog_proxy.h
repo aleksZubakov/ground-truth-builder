@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <string>
 
 #include <stdio.h>
 #include "marvelmind.h"
@@ -16,13 +17,17 @@
 class HedgehogProxy
 {
 public:
-    HedgehogProxy();
-    ~HedgehogProxy();
-    PositionValue get_data();
 
-    bool terminationRequired() { return hedge->terminationRequired; }
+    HedgehogProxy(std::string ttyFileName = DEFAULT_TTY_FILENAME, uint32_t baudRate = 9600, bool verbose = true);
+    ~HedgehogProxy();
+
+    PositionValue get_position();
+
+    bool terminationRequired();
+
 private:
-    struct MarvelmindHedge* hedge;
+
+    struct MarvelmindHedge* hedge_;
 };
 
 #endif // HEDGEHOG_PROXY_H

@@ -23,7 +23,7 @@ int main()
     while ((!terminateProgram) && (!hedge_proxy.terminationRequired()))
     {
 
-        PositionValue pos = hedge_proxy.get_data();
+        PositionValue pos = hedge_proxy.get_position();
         if (pos.ready)
         {
             std::cout << "X: " << pos.x << " Y: " << pos.y << " Z: " << pos.z << std::endl; 

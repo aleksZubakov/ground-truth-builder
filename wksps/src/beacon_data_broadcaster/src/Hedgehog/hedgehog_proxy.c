@@ -1,90 +1,93 @@
 #include "hedgehog_proxy.h"
 
-
-HedgehogProxy::HedgehogProxy() 
+HedgehogProxy::HedgehogProxy(std::string ttyFileName, uint32_t baudRate, bool verbose) 
 {
     puts("Start proxy...\n");
     
-    const char* ttyFileName = DEFAULT_TTY_FILENAME; // todo... get as parameter
-    hedge = createMarvelmindHedge();
+    hedge_ = createMarvelmindHedge();
 
-    if (!hedge)
+    if (!hedge_)
     {
         puts ("Error: Unable to create MarvelmindHedge");
         return;
     }
 
-    hedge->ttyFileName=ttyFileName;
-    hedge->verbose=true; // show errors and warnings
-    startMarvelmindHedge (hedge);
+    hedge_->ttyFileName = ttyFileName.c_str();
+    hedge_->baudRate = baudRate;
+    hedge_->verbose = verbose; // show errors and warnings
+    startMarvelmindHedge(hedge_);
 }
+
 HedgehogProxy::~HedgehogProxy()
 {
-    if (hedge)
+    if (hedge_)
     {
-        stopMarvelmindHedge(hedge);
-        destroyMarvelmindHedge(hedge);
-        if (hedge) delete hedge;
-        hedge = 0;
+        stopMarvelmindHedge(hedge_);
+        destroyMarvelmindHedge(hedge_);
+        if (hedge_) delete hedge_;
+        hedge_ = 0;
     }
 }
-PositionValue HedgehogProxy::get_data()
+
+PositionValue HedgehogProxy::get_position()
 {
     struct PositionValue position;
     position.ready = false;
 
-    while (!position.ready) {
-    bool onlyNew = true;
-    uint8_t i,j;
-    double xm,ym,zm;
-    if (hedge->haveNewValues_ || (!onlyNew))
-    {        
-        uint8_t real_values_count=hedge->maxBufferedPositions;
-        uint8_t addresses[real_values_count];
-        uint8_t addressesNum= 0;
+    while (!position.ready) 
+    {
+        bool onlyNew = true;
+       
+        if (hedge_->haveNewValues_ || (!onlyNew))
+        {        
+            uint8_t real_values_count = hedge_->maxBufferedPositions;
+            uint8_t addresses[real_values_count];
+            uint8_t addressesNum = 0;
 
-        for(i=0;i<real_values_count;i++)
-        {
-           uint8_t address= hedge->positionBuffer[i].address;
-           bool alreadyProcessed= false;
-           if (addressesNum != 0)
-                for(j=0;j<addressesNum;j++)
-                {
-                    if (address == addresses[j])
-                    {
-                        alreadyProcessed= true;
-                        break;
-                    }
-               }
-            if (alreadyProcessed)
-                continue;
-            addresses[addressesNum++]= address;
-
-            getPositionFromMarvelmindHedgeByAddress (hedge, &position, address);
-            xm= ((double) position.x)/1000.0;
-            ym= ((double) position.y)/1000.0;
-            zm= ((double) position.z)/1000.0;
-            if (position.ready)
+            for (uint8_t i = 0; i < real_values_count; ++i)
             {
-                /*
-                if (position.highResolution)
+                uint8_t address = hedge_->positionBuffer[i].address;
+                bool alreadyProcessed = false;
+
+                if (addressesNum != 0)
                 {
-                    printf ("Address: %d, X: %.3f, Y: %.3f, Z: %.3f at time T: %u\n",
-                            position.address, xm, ym, zm, position.timestamp);
-                } else
-                {
-                    printf ("Address: %d, X: %.2f, Y: %.2f, Z: %.2f at time T: %u\n",
-                            position.address, xm, ym, zm, position.timestamp);
+                    for (uint8_t j = 0; j < addressesNum; ++j)
+                    {
+                        if (address == addresses[j])
+                        {
+                            alreadyProcessed = true;
+                            break;
+                        }
+                    }
                 }
+
+                if (alreadyProcessed)
+                    continue;
+
+                addresses[addressesNum++] = address;
+                getPositionFromMarvelmindHedgeByAddress(hedge_, &position, address);
+
+                /* coordinates fo debug
+                double xm = ((double) position.x) / 1000.0;
+                double ym = ((double) position.y) / 1000.0;
+                double zm = ((double) position.z) / 1000.0;
                 */
 
-                return position;
+                if (position.ready)
+                {
+                    return position;
+                }
+
+                hedge_->haveNewValues_=false;
             }
-            hedge->haveNewValues_=false;
         }
-    }
     }
     return position;
 }
+
+bool HedgehogProxy::terminationRequired()
+{ 
+    return hedge_->terminationRequired; 
+}   
 
 
