@@ -38,7 +38,7 @@ tf::Transform get_beacon_transform(HedgehogProxy& hedge_proxy) {
 		// DEBUG
 		// geometry_msgs::Point pos = simulate_beacons_data();
 		if (pos.ready) {
-			base_coord.setOrigin(tf::Vector3(pos.x, pos.y, pos.z));
+			base_coord.setOrigin(tf::Vector3(pos.x / 1000., pos.y / 1000., pos.z / 1000.));
 			base_q.setRPY(0, 0, 0);
 			base_coord.setRotation(base_q);
 			break;
@@ -93,9 +93,10 @@ int main(int argc, char** argv)
     //ros::Rate loop_rate(atof(argv[0]));
 
     ros::Rate loop_rate(rate);
+    std::string parentTfName = "map";
     while ((!terminateProgram) && (!hedge_proxy.terminationRequired()) && ros::ok())
     {
-        br.sendTransform(tf::StampedTransform(base_coord, ros::Time::now(), "world", "beacon_base"));
+        br.sendTransform(tf::StampedTransform(base_coord, ros::Time::now(), parentTfName.c_str(), "beacon_base"));
         tf::Transform t = get_beacon_transform(hedge_proxy);
 			
         if (DEBUG) 
@@ -104,13 +105,10 @@ int main(int argc, char** argv)
             std::cout << "X: " << pos.x() << " Y: " << pos.y() << " Z: " << pos.z() << std::endl;
         }
 
-        //printf("Hi\n");
-	//continue;
-        br.sendTransform(tf::StampedTransform(t, ros::Time::now(), "world", "beacon"));
+        br.sendTransform(tf::StampedTransform(t, ros::Time::now(), parentTfName.c_str(), "beacon"));
 
         ros::spinOnce();
         loop_rate.sleep();
-
     }
     return 0;
 }
